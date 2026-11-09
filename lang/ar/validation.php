@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'before_or_equal' => ':attribute لا يزيد عن :date.',
+    'distinct' => 'لا يمكن تكرار :attribute.',
+    'array' => 'حقل :attribute يجب أن يكون قائمة صحيحة.',
+    'gt' => ['numeric' => ':attribute يجب أن يكون أكبر من :value.'],
+    'uuid' => 'معرف الطلب غير صالح. أعد فتح النموذج.',
+    'date_format' => 'اكتب تاريخًا صحيحًا في :attribute.',
+    'after_or_equal' => ':attribute يجب أن يكون في أو بعد :date.',
+    'required_if' => 'حقل :attribute مطلوب.',
+    'prohibited_unless' => 'حقل :attribute غير مطلوب لهذا الإجراء.',
+    'prohibited_if' => 'حقل :attribute لا يستخدم مع هذا النوع من العقود.',
+    'lte' => ['numeric' => ':attribute لا يزيد عن :value.'],
+    'numeric' => 'حقل :attribute يجب أن يكون رقمًا.',
+    'decimal' => 'استخدم منزلتين عشريتين على الأكثر في :attribute.',
+    'exists' => 'القيمة المختارة في :attribute غير موجودة.',
+    'prohibited' => 'لا يمكن تعديل حقل :attribute.',
+    'required' => 'حقل :attribute مطلوب.',
+    'string' => 'حقل :attribute يجب أن يكون نصًا.',
+    'integer' => 'حقل :attribute يجب أن يكون عددًا صحيحًا.',
+    'boolean' => 'قيمة :attribute غير صحيحة.',
+    'email' => 'اكتب بريدًا إلكترونيًا صحيحًا.',
+    'in' => 'القيمة المحددة في :attribute غير صحيحة.',
+    'max' => ['string' => ':attribute لا يزيد عن :max حرفًا.', 'numeric' => ':attribute لا يزيد عن :max.'],
+    'min' => ['string' => ':attribute لا يقل عن :min حرفًا.', 'numeric' => ':attribute لا يقل عن :min.'],
+    'attributes' => ['date_from' => 'بداية فترة التقرير', 'date_to' => 'نهاية فترة التقرير', 'paid_on' => 'تاريخ السداد', 'paid_from' => 'بداية فترة التحصيل', 'paid_to' => 'نهاية فترة التحصيل', 'method' => 'طريقة الدفع', 'reference' => 'المرجع', 'allocations' => 'تخصيص الدفعة', 'allocations.*.due_id' => 'المستحق', 'allocations.*.amount' => 'المبلغ المخصص', 'allocations.*.expected_remaining' => 'رصيد المستحق', 'expected_schedule_version' => 'نسخة الجدول', 'expected_principal_remaining' => 'الرصيد المتبقي', 'expected_deposit_remaining' => 'رصيد التأمين', 'due_from' => 'بداية فترة الاستحقاق', 'due_to' => 'نهاية فترة الاستحقاق', 'mode' => 'نوع الجدول', 'entries' => 'الاستحقاقات', 'entries.*.due_date' => 'تاريخ الاستحقاق', 'entries.*.amount' => 'قيمة الاستحقاق', 'expected_version' => 'نسخة الجدول', 'unit_id' => 'الوحدة', 'customer_id' => 'العميل', 'amount' => 'قيمة العقد', 'start_date' => 'تاريخ البداية', 'end_date' => 'تاريخ النهاية', 'sale_mode' => 'طريقة البيع', 'down_payment' => 'المقدم', 'security_deposit' => 'تأمين الإيجار', 'frequency' => 'الدورية', 'installments_count' => 'عدد الأقساط', 'first_due_date' => 'أول استحقاق', 'action' => 'الإجراء', 'reason' => 'سبب الإجراء', 'effective_date' => 'تاريخ الإنهاء', 'renewed_from_id' => 'العقد الأصلي', 'phone' => 'رقم الهاتف', 'allow_duplicate_phone' => 'تأكيد مشاركة رقم الهاتف', 'building_id' => 'المبنى', 'number' => 'رقم الوحدة', 'floor' => 'الدور', 'type' => 'نوع الوحدة', 'area' => 'المساحة', 'asking_sale_price' => 'سعر البيع المطلوب', 'asking_rent_price' => 'الإيجار الشهري المطلوب', 'email' => 'البريد الإلكتروني', 'password' => 'كلمة المرور', 'name' => 'الاسم', 'address' => 'العنوان', 'notes' => 'الملاحظات', 'floors' => 'عدد الطوابق', 'page' => 'رقم الصفحة', 'status' => 'الحالة', 'search' => 'البحث', 'is_active' => 'حالة المبنى'],
+];
