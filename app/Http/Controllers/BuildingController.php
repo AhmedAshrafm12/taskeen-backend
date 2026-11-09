@@ -37,9 +37,20 @@ class BuildingController extends Controller
     public function store(BuildingRequest $request)
     {
         $building = Building::create($request->validated());
-        logger()->info('Building created', ['building_id' => $building->id, 'user_id' => $request->user()->id]);
+        try {
+            logger()->info('Building created', ['building_id' => $building->id, 'user_id' => $request->user()->id]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
-        return (new BuildingResource($this->query()->findOrFail($building->id)))->response()->setStatusCode(201);
+        // Reload DB defaults (e.g. is_active). New buildings have no units yet — skip recount.
+        $building->refresh();
+        $building->setAttribute('units_count', 0);
+        $building->setAttribute('available_count', 0);
+        $building->setAttribute('sold_count', 0);
+        $building->setAttribute('rented_count', 0);
+
+        return (new BuildingResource($building))->response()->setStatusCode(201);
     }
 
     public function show(Building $building)
@@ -50,7 +61,11 @@ class BuildingController extends Controller
     public function update(BuildingRequest $request, Building $building)
     {
         $building->update($request->validated());
-        logger()->info('Building updated', ['building_id' => $building->id, 'user_id' => $request->user()->id, 'fields' => array_keys($request->validated())]);
+        try {
+            logger()->info('Building updated', ['building_id' => $building->id, 'user_id' => $request->user()->id, 'fields' => array_keys($request->validated())]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return new BuildingResource($this->query()->findOrFail($building->id));
     }

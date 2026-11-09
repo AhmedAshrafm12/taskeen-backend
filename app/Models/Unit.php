@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class Unit extends Model
 {
@@ -19,10 +20,15 @@ class Unit extends Model
     public static function availabilitySql(): string
     {
         $today = today()->toDateString();
+        // DATE() works on MySQL/MariaDB; date() is required on SQLite.
+        $date = DB::connection()->getDriverName() === 'sqlite' ? 'date(%s)' : 'DATE(%s)';
+        $saleStart = sprintf($date, 'sales.start_date');
+        $rentStart = sprintf($date, 'rentals.start_date');
+        $rentEnd = sprintf($date, 'rentals.effective_end_date');
 
         return "(CASE WHEN EXISTS (SELECT 1 FROM contracts managed WHERE managed.unit_id = units.id AND managed.activated_at IS NOT NULL) THEN
-            CASE WHEN EXISTS (SELECT 1 FROM contracts sales WHERE sales.unit_id = units.id AND sales.type = 'sale' AND sales.status IN ('active','completed') AND date(sales.start_date) <= '$today') THEN 'sold'
-                 WHEN EXISTS (SELECT 1 FROM contracts rentals WHERE rentals.unit_id = units.id AND rentals.type = 'rental' AND rentals.status IN ('active','ended') AND date(rentals.start_date) <= '$today' AND date(rentals.effective_end_date) >= '$today') THEN 'rented'
+            CASE WHEN EXISTS (SELECT 1 FROM contracts sales WHERE sales.unit_id = units.id AND sales.type = 'sale' AND sales.status IN ('active','completed') AND {$saleStart} <= '{$today}') THEN 'sold'
+                 WHEN EXISTS (SELECT 1 FROM contracts rentals WHERE rentals.unit_id = units.id AND rentals.type = 'rental' AND rentals.status IN ('active','ended') AND {$rentStart} <= '{$today}' AND {$rentEnd} >= '{$today}') THEN 'rented'
                  ELSE 'available' END
             ELSE units.status END)";
     }

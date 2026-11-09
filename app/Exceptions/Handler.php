@@ -48,7 +48,16 @@ class Handler extends ExceptionHandler
                 default => 'تعذر تنفيذ الطلب. حاول مرة أخرى.',
             };
 
-            return response()->json(['message' => $message], $status, $e instanceof HttpExceptionInterface ? $e->getHeaders() : []);
+            $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
+            $origin = $request->headers->get('Origin');
+            $allowed = config('cors.allowed_origins', []);
+            if ($origin && is_array($allowed) && in_array($origin, $allowed, true)) {
+                $headers['Access-Control-Allow-Origin'] = $origin;
+                $headers['Access-Control-Allow-Credentials'] = 'false';
+                $headers['Vary'] = 'Origin';
+            }
+
+            return response()->json(['message' => $message], $status, $headers);
         });
         $this->reportable(function (Throwable $e) {
             //
