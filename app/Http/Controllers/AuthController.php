@@ -31,9 +31,16 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken('taskeen-web', ['*'], now()->addHours(8))->plainTextToken;
+        $expiresAt = now()->addHours(8);
+        $token = $user->createToken('taskeen-web', ['*'], $expiresAt)->plainTextToken;
 
-        return response()->json(['data' => ['token' => $token, 'user' => $this->payload($user)]]);
+        return response()->json([
+            'data' => [
+                'token' => $token,
+                'expires_at' => $expiresAt->toIso8601String(),
+                'user' => $this->payload($user),
+            ],
+        ]);
     }
 
     public function me(Request $request)

@@ -31,8 +31,11 @@ class FoundationBuildingsTest extends TestCase
     {
         $this->owner();
         $this->postJson('/api/auth/login', ['login' => 'owner@example.com', 'password' => 'wrong'])->assertUnprocessable()->assertJsonValidationErrors('login');
-        $response = $this->postJson('/api/auth/login', ['login' => 'owner@example.com', 'password' => 'correct-password'])->assertOk();
+        $response = $this->postJson('/api/auth/login', ['login' => 'owner@example.com', 'password' => 'correct-password'])
+            ->assertOk()
+            ->assertJsonStructure(['data' => ['token', 'expires_at', 'user']]);
         $token = $response->json('data.token');
+        $this->assertNotNull($response->json('data.expires_at'));
         $this->withToken($token)->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.email', 'owner@example.com')->assertJsonMissingPath('data.password')->assertJsonStructure(['data' => ['id', 'name', 'username', 'email']]);
         $this->withToken($token)->postJson('/api/auth/logout')->assertOk();
         $this->assertDatabaseCount('personal_access_tokens', 0);
