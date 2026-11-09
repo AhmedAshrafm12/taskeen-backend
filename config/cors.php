@@ -19,9 +19,16 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => explode(',', env('FRONTEND_URL', 'http://localhost:5173')),
+    // Comma-separated exact origins, e.g. https://taskeen-ten.vercel.app,http://localhost:5173
+    'allowed_origins' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('FRONTEND_URL', 'http://localhost:5173'))
+    ))),
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('FRONTEND_URL_PATTERNS', ''))
+    ))),
 
     'allowed_headers' => ['*'],
 
