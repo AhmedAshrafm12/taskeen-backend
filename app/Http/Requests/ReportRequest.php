@@ -27,10 +27,12 @@ class ReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'in:collections,dues,contracts'],
+            'type' => ['required', 'in:collections,dues,contracts,finance'],
             'date_from' => ['required', 'date_format:Y-m-d', 'after_or_equal:1000-01-01'],
             'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-            'building_id' => ['nullable', 'integer', 'exists:buildings,id'], 'page' => ['nullable', 'integer', 'min:1'],
+            'building_id' => ['nullable', 'integer', 'exists:buildings,id'],
+            'land_id' => ['nullable', 'integer', 'exists:lands,id'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

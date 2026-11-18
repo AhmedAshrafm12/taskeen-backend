@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class PaymentService
 {
+    public function __construct(private CashLedgerService $cash) {}
+
     private function fail(string $field, string $message): never
     {
         throw ValidationException::withMessages([$field => $message]);
@@ -123,6 +125,7 @@ class PaymentService
 
         return DB::transaction(function () use ($input, $userId, $original, $hash) {
             $c = $this->lockContract($input['contract_id']);
+            $this->cash->lockForUpdate();
             if ($existing = Payment::where('request_key', $input['request_key'])->first()) {
                 if ($existing->request_hash !== $hash) {
                     throw new ConflictHttpException;
@@ -140,9 +143,11 @@ class PaymentService
             $payment->receipt_snapshot = array_merge($plan, ['receipt_number' => $payment->receipt_number, 'issued_at' => now()->toIso8601String(), 'corrects_receipt_number' => $source?->receipt_number]);
             $payment->save();
             PaymentEvent::create(['payment_id' => $payment->id, 'user_id' => $userId, 'action' => 'created', 'reason' => $source ? 'بديل للإيصال '.$source->receipt_number : null]);
+            $this->postCollectionCash($payment);
             if ($source) {
+                $reversalEvent = PaymentEvent::create(['payment_id' => $source->id, 'user_id' => $userId, 'action' => 'corrected', 'reason' => $input['reason'], 'replacement_payment_id' => $payment->id, 'request_key' => $input['request_key'], 'request_hash' => $hash]);
                 $this->reverseRow($source, $userId, $input['reason']);
-                PaymentEvent::create(['payment_id' => $source->id, 'user_id' => $userId, 'action' => 'corrected', 'reason' => $input['reason'], 'replacement_payment_id' => $payment->id, 'request_key' => $input['request_key'], 'request_hash' => $hash]);
+                $this->postReversalCash($source, $reversalEvent->id);
             }
 
             return $payment;
@@ -154,12 +159,48 @@ class PaymentService
         $payment->update(['status' => 'reversed', 'reversed_at' => now(), 'reversed_by' => $userId, 'reversal_reason' => $reason]);
     }
 
+    private function postCollectionCash(Payment $payment): void
+    {
+        $cents = Money::cents($payment->amount);
+        if ($cents <= 0) {
+            return;
+        }
+        $this->cash->post(
+            'in',
+            $cents,
+            $payment->paid_on->toDateString(),
+            'payment',
+            $payment->id,
+            'تحصيل عقد: '.$payment->receipt_number,
+            $payment->notes
+        );
+    }
+
+    private function postReversalCash(Payment $payment, int $eventId): void
+    {
+        $cents = Money::cents($payment->amount);
+        if ($cents <= 0) {
+            return;
+        }
+        // Reversing a collection removes cash; block if insufficient.
+        $this->cash->post(
+            'out',
+            $cents,
+            now()->toDateString(),
+            'payment_reversal',
+            $eventId,
+            'عكس تحصيل: '.$payment->receipt_number,
+            $payment->reversal_reason
+        );
+    }
+
     public function reverse(Payment $original, array $input, int $userId): Payment
     {
         $hash = hash('sha256', json_encode(['payment_id' => $original->id, 'data' => $input]));
 
         return DB::transaction(function () use ($original, $input, $userId, $hash) {
             $this->lockContract($original->contract_id);
+            $this->cash->lockForUpdate();
             $payment = Payment::lockForUpdate()->findOrFail($original->id);
             if ($event = PaymentEvent::where('request_key', $input['request_key'])->first()) {
                 if ($event->payment_id !== $payment->id || $event->action !== 'reversed' || $event->request_hash !== $hash) {
@@ -172,7 +213,8 @@ class PaymentService
                 $this->fail('payment', 'هذه الدفعة معكوسة بالفعل. لا يمكن عكسها مرة ثانية.');
             }
             $this->reverseRow($payment, $userId, $input['reason']);
-            PaymentEvent::create(['payment_id' => $payment->id, 'user_id' => $userId, 'action' => 'reversed', 'reason' => $input['reason'], 'request_key' => $input['request_key'], 'request_hash' => $hash]);
+            $event = PaymentEvent::create(['payment_id' => $payment->id, 'user_id' => $userId, 'action' => 'reversed', 'reason' => $input['reason'], 'request_key' => $input['request_key'], 'request_hash' => $hash]);
+            $this->postReversalCash($payment, $event->id);
 
             return $payment;
         }, 3);

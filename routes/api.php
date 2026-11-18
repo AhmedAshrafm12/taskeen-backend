@@ -6,6 +6,10 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DueController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\LandController;
+use App\Http\Controllers\OtherIncomeController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ScheduleController;
@@ -39,4 +43,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('customers', CustomerController::class)->only(['index', 'store', 'show', 'update']);
     Route::apiResource('units', UnitController::class)->only(['index', 'store', 'show', 'update']);
     Route::apiResource('buildings', BuildingController::class);
+
+    Route::get('/finance/summary', [FinanceController::class, 'summary']);
+    Route::get('/finance/cash-transactions', [FinanceController::class, 'cashTransactions']);
+    Route::get('/finance/capital', [FinanceController::class, 'capitalIndex']);
+    Route::post('/finance/opening-balance', [FinanceController::class, 'openingBalance']);
+    Route::post('/finance/capital-additions', [FinanceController::class, 'capitalAddition']);
+    Route::post('/finance/owner-withdrawals', [FinanceController::class, 'ownerWithdrawal']);
+
+    Route::get('/land-options', [LandController::class, 'options']);
+    Route::get('/lands', [LandController::class, 'index']);
+    Route::post('/lands', [LandController::class, 'store']);
+    Route::get('/lands/{land}', [LandController::class, 'show']);
+    Route::put('/lands/{land}', [LandController::class, 'update']);
+    Route::post('/lands/{land}/purchase-payments', [LandController::class, 'purchasePayment']);
+    Route::post('/lands/{land}/link-building', [LandController::class, 'linkBuilding']);
+
+    Route::get('/expenses', [ExpenseController::class, 'index']);
+    Route::post('/expenses', [ExpenseController::class, 'store']);
+    Route::get('/expenses/{expense}', [ExpenseController::class, 'show']);
+    Route::post('/expenses/{expense}/payments', [ExpenseController::class, 'pay']);
+
+    Route::get('/other-incomes', [OtherIncomeController::class, 'index']);
+    Route::post('/other-incomes', [OtherIncomeController::class, 'store']);
 });

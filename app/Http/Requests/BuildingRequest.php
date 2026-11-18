@@ -19,6 +19,7 @@ class BuildingRequest extends FormRequest
             'floors' => ['nullable', 'integer', 'min:1', 'max:200'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['sometimes', 'boolean'],
+            'land_id' => ['nullable', 'integer', 'exists:lands,id'],
         ];
     }
 

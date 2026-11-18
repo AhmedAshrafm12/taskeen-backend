@@ -6,6 +6,7 @@ use App\Http\Requests\BuildingRequest;
 use App\Http\Resources\BuildingResource;
 use App\Http\Resources\UnitResource;
 use App\Models\Building;
+use App\Models\Land;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 
@@ -13,7 +14,7 @@ class BuildingController extends Controller
 {
     private function query()
     {
-        return Building::query()->withCount(['units',
+        return Building::query()->with('land:id,name')->withCount(['units',
             'units as available_count' => fn ($q) => $q->whereRaw(Unit::availabilitySql().' = ?', ['available']),
             'units as sold_count' => fn ($q) => $q->whereRaw(Unit::availabilitySql().' = ?', ['sold']),
             'units as rented_count' => fn ($q) => $q->whereRaw(Unit::availabilitySql().' = ?', ['rented']),
@@ -37,6 +38,9 @@ class BuildingController extends Controller
     public function store(BuildingRequest $request)
     {
         $building = Building::create($request->validated());
+        if ($building->land_id) {
+            Land::find($building->land_id)?->refreshStatus();
+        }
         try {
             logger()->info('Building created', ['building_id' => $building->id, 'user_id' => $request->user()->id]);
         } catch (\Throwable $e) {
@@ -44,7 +48,7 @@ class BuildingController extends Controller
         }
 
         // Reload DB defaults (e.g. is_active). New buildings have no units yet — skip recount.
-        $building->refresh();
+        $building->refresh()->load('land:id,name');
         $building->setAttribute('units_count', 0);
         $building->setAttribute('available_count', 0);
         $building->setAttribute('sold_count', 0);
@@ -60,7 +64,14 @@ class BuildingController extends Controller
 
     public function update(BuildingRequest $request, Building $building)
     {
+        $previousLandId = $building->land_id;
         $building->update($request->validated());
+        if ($previousLandId && (int) $previousLandId !== (int) $building->land_id) {
+            Land::find($previousLandId)?->refreshStatus();
+        }
+        if ($building->land_id) {
+            Land::find($building->land_id)?->refreshStatus();
+        }
         try {
             logger()->info('Building updated', ['building_id' => $building->id, 'user_id' => $request->user()->id, 'fields' => array_keys($request->validated())]);
         } catch (\Throwable $e) {

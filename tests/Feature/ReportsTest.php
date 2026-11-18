@@ -107,11 +107,35 @@ class ReportsTest extends TestCase
     {
         $this->owner();
         $this->getJson('/api/dashboard')->assertOk()->assertJsonPath('data.counts.buildings', 0)->assertJsonPath('data.counts.units', 0)->assertJsonPath('data.collections.collected_total', '0.00')->assertJsonCount(0, 'data.overdue');
-        $this->getJson('/api/reports')->assertOk()->assertJsonCount(0, 'data')->assertJsonPath('meta.total', 0)->assertJsonPath('report.filters.date_from', '2026-11-01')->assertJsonPath('report.filters.date_to', '2026-11-08')->assertJsonPath('report.summary.contracts.signed_sales_value', '0.00');
+        $this->getJson('/api/reports')->assertOk()->assertJsonCount(0, 'data')->assertJsonPath('meta.total', 0)->assertJsonPath('report.filters.date_from', '2026-11-01')->assertJsonPath('report.filters.date_to', '2026-11-08')->assertJsonPath('report.summary.contracts.signed_sales_value', '0.00')->assertJsonPath('report.summary.finance.cash_balance', '0.00')->assertJsonPath('report.summary.finance.period_inflow', '0.00');
         $this->getJson('/api/reports/print')->assertOk()->assertJsonPath('total', 0)->assertJsonCount(0, 'data');
         $this->assertDatabaseCount('contracts', 0);
         $this->assertDatabaseCount('dues', 0);
         $this->assertDatabaseCount('payments', 0);
+    }
+
+    public function test_finance_report_lists_cash_movements_and_summarizes_liquidity(): void
+    {
+        $f = $this->fixture();
+        $this->owner();
+        // Posted collections are 70; cash also includes the later-reversed 5 in + 5 out.
+        $this->getJson('/api/reports?type=finance&date_from=2026-11-01&date_to=2026-11-08')
+            ->assertOk()
+            ->assertJsonPath('report.summary.finance.by_source.contract_collections', '75.00')
+            ->assertJsonPath('report.summary.finance.by_source.payment_reversals', '5.00')
+            ->assertJsonPath('report.summary.finance.period_inflow', '75.00')
+            ->assertJsonPath('report.summary.finance.period_outflow', '5.00')
+            ->assertJsonPath('report.summary.finance.costs.unpaid_costs', '0.00');
+        $scoped = $this->getJson('/api/reports?type=finance&date_from=2026-11-01&date_to=2026-11-08&building_id='.$f['a']->id)
+            ->assertOk()
+            ->assertJsonPath('report.summary.finance.by_source.contract_collections', '70.00');
+        foreach ($scoped->json('data') as $row) {
+            $this->assertSame($f['a']->id, $row['building_id']);
+            $this->assertContains($row['source_type'], ['payment', 'payment_reversal']);
+        }
+        $this->getJson('/api/reports/print?type=finance&date_from=2026-11-01&date_to=2026-11-08')
+            ->assertOk()
+            ->assertJsonPath('report.summary.finance.by_source.contract_collections', '75.00');
     }
 
     public function test_dashboard_live_counts_urgent_dues_and_month_collections_are_consistent(): void
