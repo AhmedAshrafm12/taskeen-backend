@@ -12,6 +12,7 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
+        
         $input = $request->validate([
             'login' => 'required_without:email|string|max:255',
             'email' => 'required_without:login|string|max:255',

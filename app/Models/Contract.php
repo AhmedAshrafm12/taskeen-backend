@@ -10,7 +10,12 @@ class Contract extends Model
 
     protected $hidden = ['request_key', 'request_hash'];
 
-    protected $casts = ['amount' => 'decimal:2', 'down_payment' => 'decimal:2', 'security_deposit' => 'decimal:2', 'start_date' => 'date', 'end_date' => 'date', 'effective_end_date' => 'date', 'first_due_date' => 'date', 'activated_at' => 'datetime'];
+    protected $casts = ['amount' => 'decimal:2', 'down_payment' => 'decimal:2', 'security_deposit' => 'decimal:2', 'credit_balance' => 'decimal:2', 'start_date' => 'date', 'end_date' => 'date', 'effective_end_date' => 'date', 'first_due_date' => 'date', 'activated_at' => 'datetime'];
+
+    public function revisions()
+    {
+        return $this->hasMany(ContractRevision::class);
+    }
 
     public function dues()
     {

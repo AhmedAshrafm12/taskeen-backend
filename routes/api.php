@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\ContractRevisionController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DueController;
@@ -37,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/contracts/{contract}/schedule', [ScheduleController::class, 'show']);
     Route::post('/contracts/{contract}/schedule/preview', [ScheduleController::class, 'preview'])->name('schedule.preview');
     Route::post('/contracts/{contract}/schedule', [ScheduleController::class, 'store'])->name('schedule.store');
+    Route::post('/contracts/{contract}/revisions/preview', [ContractRevisionController::class, 'preview']);
+    Route::post('/contracts/{contract}/revisions', [ContractRevisionController::class, 'store']);
     Route::post('/contracts/{contract}/transition', [ContractController::class, 'transition']);
     Route::post('/contracts/preview', [ContractController::class, 'preview']);
     Route::apiResource('contracts', ContractController::class)->only(['index', 'store', 'show']);

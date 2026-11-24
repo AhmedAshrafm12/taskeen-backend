@@ -13,7 +13,7 @@ class ContractResource extends JsonResource
             'type' => $this->type, 'status' => $this->status, 'effective_status' => $this->effective_status, 'sale_mode' => $this->sale_mode,
             'start_date' => $this->start_date->toDateString(), 'end_date' => $this->end_date?->toDateString(),
             'effective_end_date' => $this->effective_end_date?->toDateString(), 'amount' => $this->amount,
-            'down_payment' => $this->down_payment, 'security_deposit' => $this->security_deposit,
+            'down_payment' => $this->down_payment, 'security_deposit' => $this->security_deposit, 'credit_balance' => $this->credit_balance,
             'frequency' => $this->frequency, 'installments_count' => $this->installments_count,
             'first_due_date' => $this->first_due_date?->toDateString(), 'notes' => $this->notes, 'renewed_from_id' => $this->renewed_from_id,
             'unit' => $this->whenLoaded('unit', fn () => new UnitResource($this->unit)),
